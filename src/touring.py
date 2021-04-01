@@ -1,10 +1,10 @@
-#from scipy.stats import poisson, uniform
 import numpy as np
 import matplotlib.pyplot as plt
 from driver import Driver
 from restaurant import Restaurant
 from order import Order
 import help_functions as hp
+import itertools
 
 # initialize parameters in t=0
 
@@ -15,7 +15,10 @@ T_MAX = 420
 service_area = ([0, 0], [100, 100])
 
 # number of drivers
-NUM_DRIVERS = 15
+NUM_DRIVERS = 20
+# driver speed
+Driver.DRIVER_SPEED = 10
+
 drivers = []
 # create drivers
 for i in range(NUM_DRIVERS):
@@ -25,7 +28,7 @@ for i in range(NUM_DRIVERS):
     driver_x = np.random.uniform(service_area[0][0], service_area[1][0])
     driver_y = np.random.uniform(service_area[0][1], service_area[1][1])
     drivers.append(Driver([driver_x, driver_y]))
-# make list of drivers unchangeable
+# make list of drivers immutable
 drivers = tuple(drivers)
 print('### DRIVERS ###')
 for driver in drivers:
@@ -36,13 +39,10 @@ print('###############')
 NUM_RESTAURANTS = 110
 restaurants = []
 for i in range(NUM_RESTAURANTS):
-    # todo: where do drivers start
-    # i.e. random, center, etc.
-    # pass location in constructor
     restaurant_x = np.random.uniform(service_area[0][0], service_area[1][0])
     restaurant_y = np.random.uniform(service_area[0][1], service_area[1][1])
     restaurants.append(Restaurant([restaurant_x, restaurant_y]))
-# make list of drivers unchangeable
+# make list of restaurants immutable
 restaurants = tuple(restaurants)
 
 # todo: create delivery zones
@@ -51,21 +51,25 @@ restaurants = tuple(restaurants)
 order_times = np.random.poisson(lam=1, size=T_MAX)
 
 order_list = []
+unserved = []
+total_time = 0
 
-for time in range(T_MAX+60):
+for time in itertools.count(start=1):
 
-    if time < T_MAX:
-        orders = order_times[time]
-        print('Number of orders in time {} : {}'.format(time, orders))
-        if orders > 0:
+    # assign orders in the order horizon
+    if time <= T_MAX:
+        num_orders = order_times[time-1]
+        print('Number of orders in time {} : {}'.format(time, num_orders))
+        if num_orders > 0:
             new_orders = []
-            for order in range(orders):
+            for order in range(num_orders):
                 order_x = np.random.uniform(service_area[0][0], service_area[1][0])
                 order_y = np.random.uniform(service_area[0][1], service_area[1][1])
                 order_restaurant = np.random.randint(NUM_RESTAURANTS)
                 new_order = Order(time, [order_x, order_y], order_restaurant)
                 new_orders.append(new_order)
                 order_list.append(new_order)
+                unserved.append(new_order)
 
             # determine cheapest insertion
             # update tour of driver with fastest delivery time
@@ -111,15 +115,23 @@ for time in range(T_MAX+60):
         print('Diver #{} status:'.format(number))
         print('Location: {}'.format(driver.location))
         print('Tour: {}'.format([x.location for x in driver.tour]))
+    
+    # remove served customers from unserved list
+    for order in unserved:
+        if order.delivery_time > 0:
+            unserved.remove(order)
+    
+    # quit loop if all customers have been served
+    if not unserved:
+        total_time = time
+        break
+
 
 print('### RESULTS ###')
+print('Total time needed until all customers have been served: {}'.format(total_time))
 print('Total number of orders: {}'.format(len(order_list)))
 served = 0
 total_delay = 0
 for order in order_list:
-    if order.delivery_time > 0:
-        served = served + 1
-        total_delay = total_delay + order.delay
-served_perc = np.rint(served/len(order_list)*100)
-print('Served orders perc: {}'.format(served_perc))
+    total_delay = total_delay + order.delay
 print('Total delay: {}'.format(total_delay))

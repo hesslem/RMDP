@@ -17,6 +17,6 @@ def calculate_time(tour, driver) -> float:
 
     time = 0
     for pair in list(zip(tour_locations, tour_locations[1:])):
-        time = time + (manhattan_distance(pair[0], pair[1])/5)
+        time = time + (manhattan_distance(pair[0], pair[1]) / 5)
 
     return time

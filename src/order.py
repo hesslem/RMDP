@@ -12,7 +12,6 @@ class Order:
 
         return str([self.order_time, self.location, self.restaurant])
 
-    
     @property
     def delay(self):
 
