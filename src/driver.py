@@ -8,7 +8,7 @@ class Driver:
         self.location = location
         self.tour = []
 
-    def update_location(self):
+    def update_location(self, time):
 
         if len(self.tour) > 0:
 
@@ -37,7 +37,7 @@ class Driver:
             else:
 
                 if isinstance(self.tour[0], Order):
-                    self.tour[0].served = True
+                    self.tour[0].delivery_time = time
                     print('### SERVED ###')
                 self.tour.pop(0)
 

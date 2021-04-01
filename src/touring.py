@@ -1,4 +1,4 @@
-from scipy.stats import poisson, uniform
+#from scipy.stats import poisson, uniform
 import numpy as np
 import matplotlib.pyplot as plt
 from driver import Driver
@@ -41,7 +41,7 @@ for i in range(NUM_RESTAURANTS):
     # pass location in constructor
     restaurant_x = np.random.uniform(service_area[0][0], service_area[1][0])
     restaurant_y = np.random.uniform(service_area[0][1], service_area[1][1])
-    restaurants.append(Restaurant((restaurant_x, restaurant_y)))
+    restaurants.append(Restaurant([restaurant_x, restaurant_y]))
 # make list of drivers unchangeable
 restaurants = tuple(restaurants)
 
@@ -107,7 +107,7 @@ for time in range(T_MAX+60):
 
     # update position of all drivers
     for number, driver in enumerate(drivers):
-        driver.update_location()
+        driver.update_location(time)
         print('Diver #{} status:'.format(number))
         print('Location: {}'.format(driver.location))
         print('Tour: {}'.format([x.location for x in driver.tour]))
@@ -115,8 +115,11 @@ for time in range(T_MAX+60):
 print('### RESULTS ###')
 print('Total number of orders: {}'.format(len(order_list)))
 served = 0
+total_delay = 0
 for order in order_list:
-    if order.served:
+    if order.delivery_time > 0:
         served = served + 1
+        total_delay = total_delay + order.delay
 served_perc = np.rint(served/len(order_list)*100)
 print('Served orders perc: {}'.format(served_perc))
+print('Total delay: {}'.format(total_delay))
